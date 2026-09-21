@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flood It - one color, 25 moves</title>
+<style>
+  :root { --bg:#131519; --panel:#1d2026; --line:#2e333b; --text:#edf0f4; --dim:#8f99a5; --accent:#7cc7f2; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:var(--bg); color:var(--text); font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:26px 14px 40px; }
+  h1 { font-size:30px; }
+  .sub { color:var(--dim); margin:6px 0 16px; font-size:14px; }
+  #grid { display:grid; grid-template-columns:repeat(14,24px); grid-template-rows:repeat(14,24px); gap:2px; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px; }
+  .cell { border-radius:4px; }
+  .red{background:#e05252} .orange{background:#ef8f3a} .yellow{background:#f2c94c} .green{background:#2fbf71} .blue{background:#4c8bf2} .purple{background:#9b59d0}
+  .palette { display:flex; gap:10px; margin-top:18px; }
+  .swatch { width:40px; height:40px; border-radius:10px; cursor:pointer; border:2px solid transparent; transition:transform .08s; }
+  .swatch:hover { transform:scale(1.1); }
+  .swatch.cur { border-color:#fff; }
+  #hud { display:flex; gap:18px; align-items:center; margin-top:16px; flex-wrap:wrap; justify-content:center; }
+  #moves { font-size:16px; font-weight:700; }
+  button { background:var(--accent); color:#131519; border:none; border-radius:9px; padding:9px 20px; font-size:14px; font-weight:700; cursor:pointer; }
+  #status { margin-top:12px; min-height:22px; font-size:15px; text-align:center; }
+  #best { margin-top:4px; color:var(--dim); font-size:13px; }
+  .foot { margin-top:16px; color:var(--dim); font-size:13px; }
+  a { color:var(--accent); text-decoration:none; }
+</style>
+</head>
+<body>
+<h1>Flood It</h1>
+<div class="sub">flood the whole board one color from the top-left corner</div>
+
+<div id="grid"></div>
+<div class="palette" id="palette"></div>
+<div id="hud">
+  <span id="moves"></span>
+  <button id="new">New game</button>
+</div>
+<div id="status"></div>
+<div id="best"></div>
+<div class="foot"><a href="index.html">&larr; about</a></div>
+
+<script src="engine.js?v=1"></script>
+<script>
+(function () {
+  var SIZE = 14, NCOLORS = 6;
+  var gridEl = document.getElementById('grid');
+  var paletteEl = document.getElementById('palette');
+  var movesEl = document.getElementById('moves');
+  var statusEl = document.getElementById('status');
+  var bestEl = document.getElementById('best');
+
+  var board, movesLeft, budget, over;
+
+  function loadBest() { try { return parseInt(localStorage.getItem('flood-best')) || 0; } catch (e) { return 0; } }
+  function saveBest(v) { try { localStorage.setItem('flood-best', String(v)); } catch (e) {} }
+  function renderBest() { bestEl.textContent = loadBest() ? 'best: ' + loadBest() + ' moves' : 'no wins yet'; }
+
+  function newGame() {
+    board = FloodIt.newBoard(SIZE, NCOLORS, Math.random);
+    budget = FloodIt.moveBudget(SIZE, NCOLORS);
+    movesLeft = budget;
+    over = false;
+    statusEl.textContent = '';
+    render();
+  }
+
+  function render() {
+    gridEl.innerHTML = '';
+    for (var i = 0; i < board.length; i++) {
+      var c = document.createElement('div');
+      c.className = 'cell ' + FloodIt.COLORS[board[i]];
+      gridEl.appendChild(c);
+    }
+    var swatches = paletteEl.children;
+    for (var s = 0; s < swatches.length; s++) {
+      swatches[s].classList.toggle('cur', s === board[0]);
+    }
+    movesEl.textContent = 'moves left: ' + movesLeft + ' / ' + budget;
+  }
+
+  function pick(color) {
+    if (over) return;
+    var next = FloodIt.flood(board, SIZE, color);
+    if (!next) return; // no-op: same color as the flood region
+    board = next;
+    movesLeft--;
+    if (FloodIt.isSolved(board)) {
+      over = true;
+      var used = budget - movesLeft;
+      if (!loadBest() || used < loadBest()) saveBest(used);
+      statusEl.textContent = 'Flooded in ' + used + ' moves!';
+      renderBest();
+    } else if (movesLeft <= 0) {
+      over = true;
+      statusEl.textContent = 'Out of moves - try again.';
+    }
+    render();
+  }
+
+  FloodIt.COLORS.forEach(function (name, idx) {
+    var s = document.createElement('div');
+    s.className = 'swatch ' + name;
+    s.setAttribute('aria-label', name);
+    s.addEventListener('click', function () { pick(idx); });
+    paletteEl.appendChild(s);
+  });
+
+  document.getElementById('new').addEventListener('click', newGame);
+
+  // test hook
+  window.__flood = {
+    state: function () { return { board: board.slice(), movesLeft: movesLeft, budget: budget, over: over }; },
+    setBoard: function (b, ml) { board = b.slice(); if (ml !== undefined) movesLeft = ml; render(); }
+  };
+
+  newGame();
+  renderBest();
+})();
+</script>
+</body>
+</html>
