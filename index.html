@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flood It - one color, 25 moves</title>
+<style>
+  body { background:#131519; color:#edf0f4; font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; }
+  h1 { font-size:52px; margin-bottom:10px; }
+  .tag { color:#8f99a5; font-size:17px; max-width:440px; line-height:1.55; }
+  .play { display:inline-block; margin-top:26px; background:#7cc7f2; color:#131519; font-weight:700; font-size:18px; padding:13px 42px; border-radius:10px; text-decoration:none; }
+  .how { margin-top:30px; color:#8f99a5; font-size:14px; max-width:420px; line-height:1.6; }
+</style>
+</head>
+<body>
+<h1>Flood It</h1>
+<p class="tag">A 14x14 mosaic of six colors. Turn it all into one color, flooding outward from the top-left corner, in 25 moves or fewer.</p>
+<a class="play" href="app.html">Play</a>
+<p class="how">Each pick changes the corner region to that color and swallows every matching neighbor. Plan the order - the greedy move is rarely the best one. Your fewest-moves win is kept between visits.</p>
+</body>
+</html>
