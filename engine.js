@@ -54,9 +54,9 @@
     return true;
   }
 
-  /* Suggested move budget for a board size / color count (classic formula). */
+  /* Suggested move budget for a board size (classic: 25 for 14x14). */
   function moveBudget(size, colorCount) {
-    return Math.floor(size * colorCount / 14 * 3.2);
+    return 2 * size - 3;
   }
 
   var api = { COLORS: COLORS, newBoard: newBoard, region: region, flood: flood, isSolved: isSolved, moveBudget: moveBudget };
